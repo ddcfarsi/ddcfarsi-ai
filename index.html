@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>DDCFarsi Ai | استودیو تخصصی روانشناسی</title>
+    <style>
+        /* Psychology Theme Colors */
+        :root { --primary: #4A90E2; --accent: #00D2D3; --purple: #9B59B6; --bg: #0A0F1A; --panel: #141B2D; --text: #E2E8F0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Sidebar UI */
+        #sidebar { width: 380px; background: var(--panel); border-left: 1px solid #1E293B; padding: 25px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; z-index: 100; box-shadow: -5px 0 20px rgba(0,0,0,0.5); }
+        h1 { font-size: 30px; color: var(--primary); text-align: center; margin: 0; font-weight: 900; text-shadow: 0 0 10px rgba(74, 144, 226, 0.3); }
+        .brand-tag { font-size: 10px; color: var(--accent); text-align: center; letter-spacing: 2px; margin-bottom: 5px; text-transform: uppercase; font-weight: bold; }
+
+        .group { background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid #1E293B; }
+        label { font-size: 11px; color: #94A3B8; display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type="text"], input[type="file"], select { width: 100%; background: #0F172A; border: 1px solid #334155; color: white; padding: 12px; border-radius: 8px; outline: none; margin-bottom: 5px; box-sizing: border-box; font-size: 12px; transition: 0.3s; }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 8px rgba(74, 144, 226, 0.3); }
+        
+        .checkbox-group { display: flex; align-items: center; gap: 8px; margin-top: 10px; cursor: pointer; font-size: 12px; color: #cbd5e1; }
+        .checkbox-group input { width: auto; margin: 0; accent-color: var(--accent); cursor: pointer; }
+
+        .btn-record { background: linear-gradient(45deg, var(--primary), var(--accent)); color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 900; cursor: pointer; font-size: 15px; margin-top: 5px; transition: 0.3s; box-shadow: 0 5px 15px rgba(0, 210, 211, 0.2); }
+        .btn-record.active { background: linear-gradient(45deg, #EF4444, #B91C1C); color: white; animation: pulse 1.5s infinite; box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4); }
+        @keyframes pulse { 0% {opacity: 1;} 50% {opacity: 0.7;} 100% {opacity: 1;} }
+
+        /* Stage */
+        #stage { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle, #1E293B 0%, #020617 100%); }
+        #canvas-wrap { position: relative; border-radius: 30px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.8); border: 2px solid #334155; }
+        canvas { width: 400px; height: 711px; background: #000; }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <h1>DDCFarsi Ai</h1>
+        <div class="brand-tag">PSYCHOLOGY STUDIO</div>
+
+        <div class="group">
+            <label>🎙️ تنظیمات صدای روانشناس</label>
+            <select id="audio-preset">
+                <option value="warm">صدای گرم و عمیق (تراپی)</option>
+                <option value="punchy">قدرتمند و انگیزشی</option>
+                <option value="studio">استودیویی (کریستالی)</option>
+            </select>
+            
+            <label style="font-size: 10px; margin-top: 10px;">کیفیت خروجی (ضبط نهایی):</label>
+            <select id="export-quality">
+                <option value="high">کیفیت عالی استودیویی (320kbps)</option>
+                <option value="standard">استاندارد شبکه های اجتماعی</option>
+            </select>
+
+            <input type="file" id="audio-file" accept="audio/*" style="margin-top: 10px;">
+        </div>
+
+        <div class="group">
+            <label>📝 اطلاعات گوینده و موضوع (موشن ۱۵ ثانیه‌ای)</label>
+            <input type="text" id="speaker-name" placeholder="نام روانشناس (مثال: دکتر احمدی)">
+            <input type="text" id="topic-title" placeholder="موضوع (مثال: غلبه بر اضطراب)">
+        </div>
+
+        <div class="group">
+            <label>📍 زیرنویس متحرک پایینی</label>
+            <input type="text" id="address-text" value="آدرس: هرات - مقابل شفاخانه حوزوی - طبقه ۳ - دیپارتمنت روانشناسی">
+        </div>
+
+        <div class="group">
+            <label>📁 منابع تصویری پروژه</label>
+            <label style="font-size: 10px;">پس‌زمینه (عکس یا ویدیو):</label>
+            <input type="file" id="bg-file" accept="image/*,video/*">
+            <label class="checkbox-group">
+                <input type="checkbox" id="mute-bg" checked> قطع صدای ویدیوی پس‌زمینه
+            </label>
+            
+            <label style="font-size: 10px; margin-top: 10px;">لوگو:</label>
+            <input type="file" id="logo-file" accept="image/*">
+        </div>
+
+        <div class="group">
+            <label>📱 آیدی شبکه‌های اجتماعی</label>
+            <input type="text" id="ig" placeholder="Instagram ID">
+            <input type="text" id="yt" placeholder="YouTube ID">
+            <input type="text" id="tk" placeholder="TikTok ID">
+            <input type="text" id="fb" placeholder="Facebook ID">
+            <input type="text" id="tg" placeholder="Telegram ID">
+        </div>
+
+        <button class="btn-record" id="record-btn">🎬 شروع رندر و ساخت ریلز</button>
+        <div id="timer" style="text-align: center; font-family: monospace; margin-top: 5px; color: #94A3B8;">00:00</div>
+    </div>
+
+    <div id="stage">
+        <div id="canvas-wrap">
+            <canvas id="main-canvas"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('main-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1080; canvas.height = 1920;
+
+        let audioCtx, analyser, source, recorder, chunks = [];
+        let audioDest, bgVideoSource, bgVideoGain;
+        let bgImg = new Image(), logoImg = new Image();
+        let bgVideo = document.createElement('video');
+        bgVideo.loop = true; bgVideo.crossOrigin = "anonymous"; bgVideo.playsInline = true;
+        let isVideoBg = false, bgVideoAudioSetup = false;
+        
+        let kineticWords = [], socialIdx = 0, socialTimer = 0;
+        let dataArray, isRecording = false;
+        let lastWordTime = 0, recordingStartTime = 0;
+        let scrollAddressX = -1200; 
+
+        const icons = {
+            ig: 'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.058-1.69-.072-4.949-.072zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c.796 0 1.441.645 1.441 1.44s-.645 1.44-1.441 1.44c-.795 0-1.44-.645-1.44-1.44s.645-1.44 1.44-1.44z',
+            yt: 'M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z',
+            tk: 'M12.525.02c1.31.036 2.612.108 3.91.15 0 3.303 2.146 5.245 5.52 5.72v4.02c-2.5-.23-4.303-.997-5.52-2.3v7.23c0 3.63-2.94 6.57-6.57 6.57-3.63 0-6.57-2.94-6.57-6.57 0-3.63 2.94-6.57 6.57-6.57.26 0 .52.015.78.045V12.3c-.26-.03-.52-.045-.78-.045-1.42 0-2.57 1.15-2.57 2.57s1.15 2.57 2.57 2.57c1.42 0 2.57-1.15 2.57-2.57V0h3.09z',
+            fb: 'M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z',
+            tg: 'M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.257.257-.527.257l.184-2.618 4.77-4.308c.207-.183-.046-.285-.32-.103l-5.895 3.714-2.538-.793c-.55-.174-.563-.55.115-.815l9.913-3.82c.458-.171.86.103.73.815z'
+        };
+
+        function easeOutCubic(x) { return 1 - Math.pow(1 - x, 3); }
+
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.continuous = true; recognition.interimResults = true; recognition.lang = 'fa-IR';
+
+        recognition.onresult = (event) => {
+            const now = Date.now();
+            if (now - lastWordTime < 700) return;
+            const transcript = event.results[event.results.length - 1][0].transcript.trim();
+            const words_list = transcript.split(' ');
+            const lastWord = words_list[words_list.length - 1];
+            if (dataArray && dataArray[10] > 140) {
+                spawnKineticWord(lastWord);
+                lastWordTime = now;
+            }
+        };
+
+        function spawnKineticWord(text) {
+            kineticWords.push({
+                text: text,
+                x: canvas.width / 2,
+                y: Math.random() * 400 + 500,
+                alpha: 1, size: 50, targetSize: 110 + Math.random() * 80,
+                color: Math.random() > 0.5 ? '#00D2D3' : '#ffffff'
+            });
+        }
+
+        document.getElementById('bg-file').onchange = (e) => { 
+            const file = e.target.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            if (file.type.startsWith('video/')) {
+                isVideoBg = true;
+                bgVideo.src = url;
+                bgVideo.muted = true;
+                bgVideo.load();
+            } else {
+                isVideoBg = false;
+                bgImg.src = url;
+            }
+        };
+        
+        document.getElementById('logo-file').onchange = (e) => { const r = new FileReader(); r.onload = (f) => logoImg.src = f.target.result; r.readAsDataURL(e.target.files[0]); };
+
+        document.getElementById('record-btn').onclick = async () => {
+            if (isRecording) stopProcess(); else await startProcess();
+        };
+
+        async function startProcess() {
+            const audioFile = document.getElementById('audio-file').files[0];
+            if (!audioFile) return alert("فایل صوتی استاد/روانشناس را وارد کنید.");
+            isRecording = true;
+            recordingStartTime = Date.now();
+            scrollAddressX = -canvas.width;
+            
+            document.getElementById('record-btn').innerText = "⏹️ توقف و ذخیره نهایی";
+            document.getElementById('record-btn').classList.add('active');
+
+            // دریافت کیفیت انتخاب شده
+            const quality = document.getElementById('export-quality').value;
+            // اگر کیفیت عالی باشد، AudioContext را با بالاترین کیفیت سمپل ریت تنظیم میکنیم
+            const ctxOptions = quality === 'high' ? { sampleRate: 48000 } : {};
+            
+            audioCtx = new AudioContext(ctxOptions);
+            audioDest = audioCtx.createMediaStreamDestination();
+            analyser = audioCtx.createAnalyser();
+            
+            const audio = new Audio(URL.createObjectURL(audioFile));
+            source = audioCtx.createMediaElementSource(audio);
+            const preset = document.getElementById('audio-preset').value;
+            const compressor = audioCtx.createDynamicsCompressor();
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = "lowshelf"; filter.frequency.value = 150;
+            filter.gain.value = preset === 'warm' ? 15 : 6;
+
+            source.connect(filter); filter.connect(compressor);
+            compressor.connect(analyser); analyser.connect(audioCtx.destination);
+            compressor.connect(audioDest);
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+            if (isVideoBg) {
+                bgVideo.play();
+                if (!bgVideoAudioSetup) {
+                    bgVideoSource = audioCtx.createMediaElementSource(bgVideo);
+                    bgVideoGain = audioCtx.createGain();
+                    bgVideoSource.connect(bgVideoGain);
+                    bgVideoGain.connect(audioCtx.destination);
+                    bgVideoGain.connect(audioDest);
+                    bgVideoAudioSetup = true;
+                }
+                const isMuted = document.getElementById('mute-bg').checked;
+                bgVideoGain.gain.value = isMuted ? 0 : 0.3;
+            }
+
+            const canvasStream = canvas.captureStream(30);
+            const combinedStream = new MediaStream([...canvasStream.getVideoTracks(), ...audioDest.stream.getAudioTracks()]);
+
+            // تنظیم بیت‌ریت بر اساس کیفیت انتخابی (کیفیت عالی = ویدیو 15Mbps و صدای 320kbps)
+            const videoBitrate = quality === 'high' ? 15000000 : 8000000;
+            const audioBitrate = quality === 'high' ? 320000 : 128000;
+
+            const recorderOptions = { 
+                mimeType: 'video/webm;codecs=vp9', 
+                videoBitsPerSecond: videoBitrate,
+                audioBitsPerSecond: audioBitrate
+            };
+
+            recorder = new MediaRecorder(combinedStream, recorderOptions);
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = saveVideo;
+
+            recorder.start();
+            audio.play();
+            recognition.start();
+        }
+
+        function stopProcess() {
+            recorder.stop();
+            if (isVideoBg) bgVideo.pause();
+            isRecording = false;
+            document.getElementById('record-btn').innerText = "🎬 شروع رندر و ساخت ریلز";
+            document.getElementById('record-btn').classList.remove('active');
+        }
+
+        function saveVideo() {
+            const blob = new Blob(chunks, { type: 'video/mp4' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'DDCFarsi_Psychology_Reel.mp4';
+            a.click();
+            chunks = [];
+        }
+
+        function renderLoop() {
+            const elapsed = isRecording ? (Date.now() - recordingStartTime) / 1000 : 0;
+
+            ctx.fillStyle = "#050A15"; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.globalAlpha = 0.5;
+            if (isVideoBg && bgVideo.readyState >= 2) {
+                const scale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
+                const x = (canvas.width / 2) - (bgVideo.videoWidth / 2) * scale;
+                const y = (canvas.height / 2) - (bgVideo.videoHeight / 2) * scale;
+                ctx.drawImage(bgVideo, x, y, bgVideo.videoWidth * scale, bgVideo.videoHeight * scale);
+            } else if (bgImg.src) {
+                ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+            }
+            ctx.globalAlpha = 1.0;
+
+            if (logoImg.src) {
+                ctx.save();
+                ctx.shadowBlur = 20; ctx.shadowColor = "rgba(74, 144, 226, 0.5)";
+                ctx.drawImage(logoImg, 70, 70, 150, 150);
+                ctx.restore();
+            }
+
+            if(isRecording && dataArray) analyser.getByteFrequencyData(dataArray);
+            
+            renderPsychologyWaves();
+
+            kineticWords.forEach((w, i) => {
+                ctx.save(); ctx.globalAlpha = w.alpha; ctx.translate(w.x, w.y);
+                ctx.fillStyle = w.color; ctx.font = `900 ${w.size}px Segoe UI`;
+                ctx.textAlign = "center"; ctx.shadowBlur = 20; ctx.shadowColor = w.color;
+                ctx.fillText(w.text, 0, 0); ctx.restore();
+                if (w.size < w.targetSize) w.size += (w.targetSize - w.size) * 0.1;
+                w.alpha -= 0.015;
+                if (w.alpha <= 0) kineticWords.splice(i, 1);
+            });
+
+            // اجرای کادر گوینده با تایم جدید ۱۵ ثانیه ای
+            if(isRecording) renderSpeakerTopic(elapsed);
+
+            renderSocialSidebar();
+
+            if(isRecording) renderScrollingAddress();
+
+            requestAnimationFrame(renderLoop);
+        }
+
+        function renderPsychologyWaves() {
+            if(!dataArray) return;
+            ctx.save(); ctx.lineWidth = 4; ctx.globalAlpha = 0.6;
+            const time = Date.now() * 0.0015;
+            const avg = dataArray.reduce((a,b)=>a+b, 0) / dataArray.length;
+
+            const colors = ["#4A90E2", "#00D2D3", "#9B59B6"];
+            for (let j = 0; j < 3; j++) {
+                ctx.beginPath(); ctx.strokeStyle = colors[j];
+                for (let i = 0; i < canvas.width; i += 10) {
+                    const waveHeight = (avg * 1.2) + (j * 25);
+                    const y = 900 + Math.sin(i * 0.004 + time + (j*0.5)) * waveHeight;
+                    if (i === 0) ctx.moveTo(i, y); else ctx.lineTo(i, y);
+                }
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // موشن هر 15 ثانیه یک‌بار
+        function renderSpeakerTopic(elapsed) {
+            const speaker = document.getElementById('speaker-name').value;
+            const topic = document.getElementById('topic-title').value;
+            if(!speaker && !topic) return;
+
+            // سیکل ۱۵ ثانیه‌ای:
+            // 0 تا 1 ثانیه: ورود به صفحه
+            // 1 تا 6 ثانیه: توقف و نمایش (5 ثانیه فرصت خواندن)
+            // 6 تا 7 ثانیه: خروج از صفحه
+            // 7 تا 15 ثانیه: عدم نمایش و استراحت چشم (8 ثانیه فاصله)
+            const cycle = elapsed % 15;
+            let xOff = -900; 
+            let alpha = 0;
+
+            if (cycle >= 0 && cycle < 1) { 
+                let progress = easeOutCubic(cycle);
+                xOff = -900 + (900 * progress);
+                alpha = progress;
+            } else if (cycle >= 1 && cycle <= 6) { 
+                xOff = 0; alpha = 1;
+            } else if (cycle > 6 && cycle <= 7) { 
+                let progress = easeOutCubic(cycle - 6);
+                xOff = -(900 * progress);
+                alpha = 1 - progress;
+            } else {
+                return; // در زمان استراحت هیچ چیز رندر نمی‌شود
+            }
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.translate(60 + xOff, 1280); 
+
+            let boxGrad = ctx.createLinearGradient(0,0, 650, 0);
+            boxGrad.addColorStop(0, "rgba(10, 15, 26, 0.95)");
+            boxGrad.addColorStop(1, "rgba(74, 144, 226, 0.2)");
+
+            ctx.fillStyle = boxGrad;
+            ctx.shadowBlur = 25; ctx.shadowColor = "rgba(0,0,0,0.6)";
+            ctx.beginPath();
+            ctx.roundRect(0, 0, 680, 170, 30);
+            ctx.fill();
+
+            ctx.fillStyle = "#00D2D3";
+            ctx.beginPath(); ctx.arc(620, 85, 12, 0, Math.PI*2); ctx.fill();
+
+            ctx.fillStyle = "#4A90E2";
+            ctx.beginPath(); ctx.roundRect(650, 25, 8, 120, 4); ctx.fill();
+
+            ctx.textAlign = "right";
+            ctx.shadowBlur = 5; ctx.shadowColor = "black";
+            
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "900 48px Segoe UI";
+            ctx.fillText(topic, 580, 80); 
+            
+            ctx.fillStyle = "#A5F3FC";
+            ctx.font = "bold 34px Segoe UI";
+            ctx.fillText(speaker, 580, 140);
+
+            ctx.restore();
+        }
+
+        function renderScrollingAddress() {
+            const address = document.getElementById('address-text').value;
+            if(!address) return;
+
+            ctx.save();
+            ctx.translate(0, 1800);
+            
+            let grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+            grad.addColorStop(0, "rgba(15, 23, 42, 0.95)");
+            grad.addColorStop(1, "rgba(74, 144, 226, 0.9)");
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, 120);
+
+            ctx.fillStyle = "#00D2D3";
+            ctx.fillRect(0, 0, canvas.width, 4);
+
+            ctx.beginPath(); ctx.rect(0, 0, canvas.width, 120); ctx.clip();
+
+            ctx.font = "bold 38px Segoe UI";
+            ctx.fillStyle = "#ffffff";
+            ctx.textAlign = "left";
+            
+            scrollAddressX += 4;
+            const textWidth = ctx.measureText(address).width;
+            
+            if (scrollAddressX > canvas.width) {
+                scrollAddressX = -textWidth - 50; 
+            }
+
+            ctx.shadowBlur = 10; ctx.shadowColor = "black";
+            ctx.fillText(address, scrollAddressX, 75);
+            
+            ctx.restore();
+        }
+
+        function renderSocialSidebar() {
+            socialTimer++;
+            if (socialTimer > 180) { socialIdx = (socialIdx + 1) % 5; socialTimer = 0; } 
+            
+            const platforms = [
+                { id: 'ig', color: '#E4405F', path: icons.ig },
+                { id: 'yt', color: '#FF0000', path: icons.yt },
+                { id: 'tk', color: '#ffffff', path: icons.tk },
+                { id: 'fb', color: '#1877F2', path: icons.fb },
+                { id: 'tg', color: '#0088cc', path: icons.tg }
+            ];
+
+            const p = platforms[socialIdx];
+            const val = document.getElementById(p.id).value;
+            if (val) {
+                ctx.save();
+                ctx.translate(70, 1500); 
+                
+                ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
+                ctx.beginPath(); ctx.roundRect(0, 0, 420, 100, 20); ctx.fill();
+                ctx.strokeStyle = "rgba(74, 144, 226, 0.3)"; ctx.stroke();
+
+                ctx.fillStyle = p.color;
+                const svgPath = new Path2D(p.path);
+                ctx.save(); ctx.translate(30, 20); ctx.scale(2.5, 2.5); ctx.fill(svgPath); ctx.restore();
+
+                ctx.font = "bold 36px Segoe UI";
+                ctx.fillStyle = "white"; ctx.textAlign = "left";
+                ctx.fillText(val, 110, 65);
+                ctx.restore();
+            }
+        }
+
+        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+            this.beginPath(); this.moveTo(x + r, y);
+            this.arcTo(x + w, y, x + w, y + h, r); this.arcTo(x + w, y + h, x, y + h, r);
+            this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r);
+            this.closePath(); return this;
+        };
+
+        let sec = 0;
+        setInterval(() => { if (isRecording) { sec++; let m = Math.floor(sec/60), s = sec%60; document.getElementById('timer').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; } else sec = 0; }, 1000);
+
+        renderLoop();
+    </script>
+</body>
+</html>
